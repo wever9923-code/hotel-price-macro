@@ -1,0 +1,237 @@
+[
+ {
+  "breakfast": true,
+  "freeCancel": "2027.2.25 18시까지",
+  "hotel": "voyage",
+  "perNight": 330036,
+  "room": "보야지 시그니처 (50㎡ 오션뷰)",
+  "site": "monkey",
+  "total": 1320144,
+  "ts": "2026-09-30T04:38:00Z"
+ },
+ {
+  "breakfast": true,
+  "freeCancel": "2027.4.24 16시까지",
+  "hotel": "mirage",
+  "perNight": 363668,
+  "room": "디럭스 익스플로러 킹 (42㎡ 바다뷰)",
+  "site": "monkey",
+  "total": 1454672,
+  "ts": "2026-09-30T05:00:00Z"
+ },
+ {
+  "hotel": "mirage",
+  "note": "현재 특가는 2027.3.31 숙박분까지",
+  "perNight": null,
+  "site": "taecho",
+  "status": "요금 미등록",
+  "ts": "2026-09-30T05:00:00Z"
+ },
+ {
+  "breakfast": true,
+  "freeCancel": "2027.3.27 18시까지",
+  "hotel": "space",
+  "perNight": 260327,
+  "room": "스페이스 프리미엄 (45㎡ 바다뷰)",
+  "site": "monkey",
+  "total": 1041308,
+  "ts": "2026-09-30T05:00:00Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "space",
+  "note": "성인 2인 조식 기준",
+  "perNight": 254280,
+  "room": "스페이스 프리미엄 · 얼리버드",
+  "site": "taecho",
+  "ts": "2026-09-30T05:00:00Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "voyage",
+  "perNight": null,
+  "room": "보야지 시그니처",
+  "site": "taecho",
+  "status": "시크릿요금 (문의 필요)",
+  "ts": "2026-09-30T05:00:00Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "mirage",
+  "note": "환불 불가 · 아동 조식비 별도 가능",
+  "perNight": 338376,
+  "room": "디럭스 익스플로러 킹",
+  "site": "agoda",
+  "total": 1353504,
+  "ts": "2026-09-30T05:22:00Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "mirage",
+  "note": "환불 불가",
+  "perNight": 389246,
+  "room": "디럭스 익스플로러 킹",
+  "site": "booking",
+  "total": 1556982,
+  "ts": "2026-09-30T05:22:00Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "space",
+  "note": "환불 불가 · 간이침대 포함",
+  "perNight": 333721,
+  "room": "스페이스 디럭스 킹",
+  "site": "agoda",
+  "total": 1334884,
+  "ts": "2026-09-30T05:22:00Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "space",
+  "note": "환불 불가",
+  "perNight": 302970,
+  "room": "Space Deluxe King",
+  "site": "booking",
+  "total": 1211881,
+  "ts": "2026-09-30T05:22:00Z"
+ },
+ {
+  "breakfast": true,
+  "freeCancel": "",
+  "hotel": "voyage",
+  "note": "환불 불가 · 간이침대 포함",
+  "perNight": 361796,
+  "room": "보야지 시그니처 킹",
+  "site": "agoda",
+  "total": 1447184,
+  "ts": "2026-09-30T05:22:00Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "voyage",
+  "note": "환불 불가",
+  "perNight": 349756,
+  "room": "Voyage Signature King",
+  "site": "booking",
+  "total": 1399023,
+  "ts": "2026-09-30T05:22:00Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "mirage",
+  "note": "환불 불가 · 아동 조식비 별도 가능",
+  "perNight": 338376,
+  "room": "디럭스 익스플로러 킹",
+  "site": "agoda",
+  "total": 1353504,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "mirage",
+  "note": "환불 불가",
+  "perNight": 389246,
+  "room": "디럭스 익스플로러 킹",
+  "site": "booking",
+  "total": 1556982,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "freeCancel": "2027.4.24 16시까지",
+  "hotel": "mirage",
+  "perNight": 363668,
+  "room": "디럭스 익스플로러 킹 (42㎡ 바다뷰)",
+  "site": "monkey",
+  "total": 1454672,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "mirage",
+  "note": "성인 2인 조식 기준",
+  "perNight": null,
+  "site": "taecho",
+  "status": "요금 미등록",
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "space",
+  "note": "환불 불가 · 간이침대 포함",
+  "perNight": 333721,
+  "room": "스페이스 디럭스 킹",
+  "site": "agoda",
+  "total": 1334884,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "space",
+  "note": "환불 불가",
+  "perNight": 302970,
+  "room": "Space Deluxe King",
+  "site": "booking",
+  "total": 1211881,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "freeCancel": "2027.3.27 18시까지",
+  "hotel": "space",
+  "perNight": 260327,
+  "room": "스페이스 프리미엄 (45㎡ 바다뷰)",
+  "site": "monkey",
+  "total": 1041308,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "space",
+  "note": "성인 2인 조식 기준",
+  "perNight": 254280,
+  "room": "스페이스 프리미엄 · 얼리버드",
+  "site": "taecho",
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "voyage",
+  "note": "환불 불가 · 간이침대 포함",
+  "perNight": 361796,
+  "room": "보야지 시그니처 킹",
+  "site": "agoda",
+  "total": 1447184,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "voyage",
+  "note": "환불 불가",
+  "perNight": 349756,
+  "room": "Voyage Signature King",
+  "site": "booking",
+  "total": 1399023,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "freeCancel": "2027.2.25 18시까지",
+  "hotel": "voyage",
+  "perNight": 330036,
+  "room": "보야지 시그니처 (50㎡ 오션뷰)",
+  "site": "monkey",
+  "total": 1320144,
+  "ts": "2026-09-30T05:53:11Z"
+ },
+ {
+  "breakfast": true,
+  "hotel": "voyage",
+  "note": "성인 2인 조식 기준",
+  "perNight": null,
+  "room": "보야지 시그니처",
+  "site": "taecho",
+  "status": "시크릿요금 (문의 필요)",
+  "ts": "2026-09-30T05:53:11Z"
+ }
+]
