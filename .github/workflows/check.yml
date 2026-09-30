@@ -1,0 +1,49 @@
+name: 호텔 가격 확인
+
+on:
+  schedule:
+    - cron: "50 23 * * *"   # 한국시간 08:50
+    - cron: "50 5 * * *"    # 한국시간 14:50
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hotel-price
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 설치
+        run: |
+          pip install playwright==1.49.1 requests
+          python -m playwright install --with-deps chromium
+      - name: 가격 확인
+        env:
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+          PAGE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: python scraper/check.py
+      - name: 카카오 토큰 갱신 저장
+        if: hashFiles('.new_refresh_token') != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -n "$GH_TOKEN" ]; then gh secret set KAKAO_REFRESH_TOKEN < .new_refresh_token; else echo "GH_PAT 없음: 토큰을 수동으로 갱신해야 해요"; fi
+          rm -f .new_refresh_token
+      - name: 기록 저장
+        run: |
+          git config user.name "hotel-price-bot"
+          git config user.email "hotel-price-bot@users.noreply.github.com"
+          git add docs/history.json
+          git diff --cached --quiet || git commit -m "가격 기록 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
+          git push
