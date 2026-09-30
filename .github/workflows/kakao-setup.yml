@@ -1,0 +1,39 @@
+name: 카카오 연결 (처음 한 번)
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "브라우저 주소창의 code= 뒤 값"
+        required: true
+      redirect_uri:
+        description: "카카오 앱에 등록한 Redirect URI"
+        required: true
+        default: "https://localhost"
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 토큰 발급 및 저장
+        env:
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          CODE: ${{ github.event.inputs.code }}
+          REDIRECT: ${{ github.event.inputs.redirect_uri }}
+        run: |
+          ARGS=(-d grant_type=authorization_code -d client_id="$KAKAO_REST_KEY" -d redirect_uri="$REDIRECT" -d code="$CODE")
+          if [ -n "$KAKAO_CLIENT_SECRET" ]; then ARGS+=(-d client_secret="$KAKAO_CLIENT_SECRET"); fi
+          RES=$(curl -s -X POST https://kauth.kakao.com/oauth/token "${ARGS[@]}")
+          ACCESS=$(echo "$RES" | jq -r .access_token)
+          REFRESH=$(echo "$RES" | jq -r .refresh_token)
+          if [ "$REFRESH" = "null" ] || [ -z "$REFRESH" ]; then
+            echo "토큰 발급 실패: $(echo "$RES" | jq -c '{error, error_description}')"; exit 1
+          fi
+          echo "::add-mask::$REFRESH"; echo "::add-mask::$ACCESS"
+          echo "$REFRESH" | gh secret set KAKAO_REFRESH_TOKEN --repo "$GITHUB_REPOSITORY"
+          curl -s -X POST https://kapi.kakao.com/v2/api/talk/memo/default/send \
+            -H "Authorization: Bearer $ACCESS" \
+            --data-urlencode 'template_object={"object_type":"text","text":"[파타야 호텔 가격] 카카오 연결 완료! 이제 가격이 바뀌면 여기로 알려드려요.","link":{}}'
+          echo; echo "완료: KAKAO_REFRESH_TOKEN 저장됨"
