@@ -39,8 +39,13 @@ HOTELS = {
                "agoda_slug": "centara-grand-mirage-beach-resort",
                "booking": "centara-grand-mirage-beach-resort-pattaya", "taecho": 54992},
 }
-SITE_NAMES = {"monkey": "몽키", "agoda": "아고다", "booking": "부킹", "taecho": "태초"}
-COMPARE_SITES = ("monkey", "agoda", "booking")  # 태초클럽은 참고용(성인 2인 기준)
+SITE_NAMES = {"monkey": "몽키", "agoda": "아고다", "booking": "부킹", "taecho": "태초", "google": "구글"}
+COMPARE_SITES = ("monkey", "agoda", "booking", "google")  # 태초클럽은 참고용(성인 2인 기준)
+
+# ── 항공권 조건 (구글 플라이트) ─────────────────────────────────
+FLIGHT = {"from": "ICN", "to": "BKK", "out": "2027-04-23", "back": "2027-05-01",
+          "airline": "Korean Air", "adults": 1, "nonstop": True}
+NAMES = {**{k: v["name"] for k, v in HOTELS.items()}, "flight": "대한항공"}
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
@@ -224,6 +229,64 @@ def scrape_taecho(ctx):
     return out
 
 
+GFLIGHTS_PARSE = """async ({airline, nonstop}) => {
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const labels = () => [...document.querySelectorAll('[aria-label]')].map(e => e.getAttribute('aria-label')).filter(t => /South Korean won round trip total/.test(t));
+  for (let i = 0; i < 40 && !labels().length; i++) await sleep(500);
+  await sleep(1500);
+  const seen = new Set(), flights = [];
+  for (const t of labels()) {
+    const price = +((t.match(/From ([0-9,]+) South Korean won/) || [])[1] || '').replace(/,/g, '');
+    const air = (t.match(/flight with ([^.]+)\./) || [])[1] || '';
+    const stops = /^From [0-9,]+ South Korean won round trip total\. Nonstop/.test(t) ? 0 : 1;
+    const dep = (t.match(/at (\d{1,2}:\d{2}\s?[AP]M) on/) || [])[1] || '';
+    const arr = (t.match(/arrives at .*? at (\d{1,2}:\d{2}\s?[AP]M)/) || [])[1] || '';
+    if (!price) continue;
+    if (airline && !air.toLowerCase().includes(airline.toLowerCase())) continue;
+    if (nonstop && stops) continue;
+    const key = dep + arr + price; if (seen.has(key)) continue; seen.add(key);
+    flights.push({price, airline: air, dep, arr});
+  }
+  flights.sort((a, b) => a.price - b.price);
+  const insight = (document.body.innerText.match(/Prices are currently (\w+)/) || [])[1] || '';
+  return {count: flights.length, best: flights[0] || null, flights, insight, labels: labels().length};
+}"""
+
+
+def to24(t):
+    try:
+        return datetime.strptime(t.replace("\u202f", " ").strip(), "%I:%M %p").strftime("%H:%M")
+    except Exception:
+        return t
+
+
+def scrape_flights(ctx):
+    from urllib.parse import quote
+    f = FLIGHT
+    q = (f"Flights to {f['to']} from {f['from']} on {f['out']} through {f['back']}"
+         + (" nonstop" if f["nonstop"] else "") + (f" {f['airline']}" if f["airline"] else "")
+         + (f" {f['adults']} adults" if f["adults"] > 1 else ""))
+    url = f"https://www.google.com/travel/flights?q={quote(q)}&curr=KRW&hl=en&gl=kr"
+    page = ctx.new_page()
+    out = {}
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=60000)
+        r = page.evaluate(GFLIGHTS_PARSE, {"airline": f["airline"], "nonstop": f["nonstop"]})
+        b = r.get("best")
+        if b:
+            deps = sorted({to24(x["dep"]) for x in r["flights"] if x["price"] == b["price"]})
+            insight = {"low": "현재 낮은 편", "typical": "현재 보통", "high": "현재 높은 편"}.get(r.get("insight"), "")
+            out["flight"] = {"perNight": b["price"], "total": b["price"],
+                             "room": f"{b['airline'].replace('Korean Air', '대한항공')} {'직항 ' if f['nonstop'] else ''}{', '.join(deps)} 출발",
+                             "note": " · ".join(x for x in (f"성인 {f['adults']}명 왕복 총액", insight) if x)}
+        else:
+            log(f"[google] 항공편을 찾지 못함 (labels={r.get('labels')})")
+    except Exception as e:
+        log(f"[google] 실패: {e}")
+    page.close()
+    return out
+
+
 # ── 카카오톡 ─────────────────────────────────────────────────
 def kakao_send(text):
     key = os.environ.get("KAKAO_REST_KEY")
@@ -263,10 +326,11 @@ def main():
         ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>undefined})")
         results = {}
         for site, fn in (("monkey", scrape_monkey), ("agoda", scrape_agoda),
-                         ("booking", scrape_booking), ("taecho", scrape_taecho)):
+                         ("booking", scrape_booking), ("taecho", scrape_taecho),
+                         ("google", scrape_flights)):
             t0 = time.time()
             results[site] = fn(ctx)
-            log(f"[{site}] {len(results[site])}/3 완료 ({time.time() - t0:.0f}s): "
+            log(f"[{site}] {len(results[site])}/{1 if site == 'google' else 3} 완료 ({time.time() - t0:.0f}s): "
                 + ", ".join(f"{k}={v.get('perNight')}" for k, v in results[site].items()))
         browser.close()
 
@@ -293,17 +357,17 @@ def main():
     if changes:
         now = {(r["hotel"], r["site"]): r for r in history}
         cands = [(r["perNight"], h, s) for (h, s), r in now.items()
-                 if s in COMPARE_SITES and isinstance(r.get("perNight"), int)]
+                 if s in COMPARE_SITES and h != "flight" and isinstance(r.get("perNight"), int)]
         fmt = lambda v: f"{v:,}원" if isinstance(v, int) else "없음"
         lines = ["[파타야 호텔 가격 변동]"]
         for h, s, a, b in sorted(changes, key=lambda c: (c[1] not in COMPARE_SITES, -abs((c[3] or 0) - (c[2] or 0)))):
             diff = ""
             if isinstance(a, int) and isinstance(b, int):
                 diff = f"({'▼' if b < a else '▲'}{abs(b - a):,})"
-            lines.append(f"{HOTELS[h]['name']}·{SITE_NAMES[s]} {fmt(a)}→{fmt(b)}{diff}")
+            lines.append(f"{NAMES[h]}·{SITE_NAMES[s]} {fmt(a)}→{fmt(b)}{diff}")
         if cands:
             v, h, s = min(cands)
-            lines.append(f"최저: {HOTELS[h]['name']}·{SITE_NAMES[s]} {v:,}원")
+            lines.append(f"최저: {NAMES[h]}·{SITE_NAMES[s]} {v:,}원")
         text = "\n".join(lines)
         while len(text) > 200 and len(lines) > 3:
             lines.pop(-2); text = "\n".join(lines)
