@@ -72,7 +72,7 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">파타야 호텔 가격 트래커</p>
+    <p class="eyebrow">파타야 여행 가격 트래커</p>
     <h1>2027.4.27 (화) – 5.1 (토) · 4박</h1>
     <p class="sub">성인 2 · 아동 1 (만 10세) · 조식 포함 · 1박 최저가 기준</p>
   </header>
@@ -82,19 +82,21 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
     <div class="best" id="best"><span class="note">가격 기록을 불러오는 중이에요.</span></div>
   </div>
 
+  <div id="flight"></div>
+
   <div id="hotels" style="display:grid;gap:18px"></div>
 
   <details class="card">
     <summary>전체 확인 기록</summary>
     <div class="tbl">
       <table>
-        <thead><tr><th>확인 시각</th><th>호텔</th><th>사이트</th><th class="n">1박</th></tr></thead>
+        <thead><tr><th>확인 시각</th><th>항목</th><th>사이트</th><th class="n">가격</th></tr></thead>
         <tbody id="log"><tr><td colspan="4" class="empty">기록이 없어요.</td></tr></tbody>
       </table>
     </div>
   </details>
 
-  <p class="note">가격은 모두 세금·봉사료 포함 1박 금액이에요. 몽키트래블·아고다·부킹닷컴은 아동 1명(만 10세)을 포함한 조건의 요금이고, 아고다는 만 10세를 간이침대 대상으로 계산해 그 요금이 포함돼 있어요. 태초클럽은 성인 2인 조식 기준이라 참고용으로만 보여주고 최저가 비교에서는 빼요. 태초클럽은 날짜가 자동 입력되지 않으니 열린 페이지에서 "날짜 먼저 선택"으로 4.27–5.1을 넣어주세요.</p>
+  <p class="note">항공권은 구글 플라이트 기준 대한항공 직항, 성인 1명 왕복 총액(세금 포함)이에요. 호텔 가격은 모두 세금·봉사료 포함 1박 금액이에요. 몽키트래블·아고다·부킹닷컴은 아동 1명(만 10세)을 포함한 조건의 요금이고, 아고다는 만 10세를 간이침대 대상으로 계산해 그 요금이 포함돼 있어요. 태초클럽은 성인 2인 조식 기준이라 참고용으로만 보여주고 최저가 비교에서는 빼요. 태초클럽은 날짜가 자동 입력되지 않으니 열린 페이지에서 "날짜 먼저 선택"으로 4.27–5.1을 넣어주세요.</p>
 </div>
 
 <script>
@@ -115,6 +117,33 @@ const SITES = [
   {key:"taecho", ko:"태초클럽", cls:"s2", color:"var(--site2)", ref:true},
 ];
 
+const FLIGHT = {ko:"인천 ↔ 방콕 항공권", sub:"대한항공 직항 · 2027.4.23 (금) – 5.1 (토) · 성인 1명 왕복",
+  url:"https://www.google.com/travel/flights?q=Flights%20to%20BKK%20from%20ICN%20on%202027-04-23%20through%202027-05-01%20nonstop%20Korean%20Air&curr=KRW&hl=ko&gl=kr"};
+const GSITE = {key:"google", ko:"구글 플라이트", cls:"s4", color:"var(--site4)"};
+
+function renderFlight(rows){
+  const box=document.getElementById("flight"); box.textContent="";
+  const list=series(rows,"flight","google"), last=list[list.length-1];
+  const p=priced(list), lp=p[p.length-1], pp=p[p.length-2];
+  const card=el("section",{class:"card"});
+  const head=el("div",{class:"hotel-head"}); const t=el("div");
+  t.appendChild(el("h2",{},FLIGHT.ko)); t.appendChild(el("div",{class:"en"},FLIGHT.sub));
+  head.appendChild(t); card.appendChild(head);
+  const row=el("div",{class:"site"});
+  const nm=el("div",{class:"site-name"}); nm.appendChild(el("span",{class:"dot s4"})); nm.appendChild(document.createTextNode(GSITE.ko)); row.appendChild(nm);
+  row.appendChild(last && typeof last.perNight==="number" ? el("div",{class:"price"},won(last.perNight)) : el("div",{class:"price na"}, last ? (last.status||"가격 없음") : "아직 확인 전"));
+  const det=el("div",{class:"detail"});
+  if(last){ if(last.room) det.appendChild(el("span",{},last.room)); if(last.note) det.appendChild(el("span",{},last.note)); det.appendChild(el("span",{},fmtTime(last.ts)+" 확인")); }
+  row.appendChild(det);
+  const end=el("div",{class:"row-end"}); const chipBox=el("span");
+  if(lp && pp){const d=lp.perNight-pp.perNight; chipBox.appendChild(el("span",{class:"chip "+(d<0?"down":d>0?"up":"")}, d===0?"변동 없음":(d<0?"▼ ":"▲ ")+won(Math.abs(d))));}
+  end.appendChild(chipBox);
+  end.appendChild(el("a",{class:"link s4",href:FLIGHT.url,target:"_blank",rel:"noopener"},"구글 플라이트에서 보기 ↗"));
+  row.appendChild(end); card.appendChild(row);
+  const chart=el("div",{class:"chart"}); drawChart(chart,[{S:GSITE,pts:p}]); card.appendChild(chart);
+  box.appendChild(card);
+}
+
 const won = n => n.toLocaleString("ko-KR") + "원";
 const fmtTime = iso => new Date(iso).toLocaleString("ko-KR",{timeZone:"Asia/Seoul",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false});
 function el(tag, attrs={}, text){const e=document.createElement(tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e}
@@ -123,6 +152,7 @@ function series(rows,h,s){return rows.filter(r=>r.hotel===h && r.site===s)}
 function priced(list){return list.filter(r=>typeof r.perNight==="number")}
 
 function render(rows){
+  renderFlight(rows);
   const box=document.getElementById("hotels"); box.textContent="";
   const latestPriced=[];
   HOTELS.forEach(H=>{
@@ -163,7 +193,7 @@ function render(rows){
     best.appendChild(el("b",{},won(m.r.perNight))); best.appendChild(el("span",{},m.H.ko+" · "+m.S.ko));}
   // log
   const log=document.getElementById("log"); log.textContent="";
-  [...rows].reverse().forEach(r=>{const H=HOTELS.find(h=>h.key===r.hotel), S=SITES.find(s=>s.key===r.site); if(!H||!S) return;
+  [...rows].reverse().forEach(r=>{const H=r.hotel==="flight"?{ko:"대한항공 항공권"}:HOTELS.find(h=>h.key===r.hotel), S=r.site==="google"?GSITE:SITES.find(s=>s.key===r.site); if(!H||!S) return;
     const tr=el("tr"); tr.appendChild(el("td",{},fmtTime(r.ts))); tr.appendChild(el("td",{},H.ko.replace(/ 파타야$/,"").replace("그랑데 센터 포인트","GCP").replace(" 비치 리조트","")));
     tr.appendChild(el("td",{},S.ko)); tr.appendChild(el("td",{class:"n"}, typeof r.perNight==="number"?won(r.perNight):(r.status||"–"))); log.appendChild(tr);});
   if(!log.children.length) log.appendChild(Object.assign(el("tr"),{innerHTML:'<td colspan="4" class="empty">기록이 없어요.</td>'}));
@@ -171,7 +201,7 @@ function render(rows){
 
 function drawChart(box, sets){
   const n=Math.max(...sets.map(s=>s.pts.length));
-  if(n<2){box.appendChild(el("p",{class:"note"},"같은 사이트에서 가격이 두 번 이상 기록되면 추이 그래프가 나타나요.")); return;}
+  if(n<2){box.appendChild(el("p",{class:"note"},"가격이 두 번 이상 기록되면 추이 그래프가 나타나요.")); return;}
   const all=sets.flatMap(s=>s.pts); const ts=all.map(r=>+new Date(r.ts)); const vals=all.map(r=>r.perNight);
   let lo=Math.min(...vals),hi=Math.max(...vals); if(lo===hi){lo-=10000;hi+=10000} const pad=(hi-lo)*.15; lo-=pad; hi+=pad;
   let t0=Math.min(...ts),t1=Math.max(...ts); if(t0===t1)t1=t0+1;
