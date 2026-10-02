@@ -945,5 +945,121 @@
   "total": 799400,
   "room": "대한항공 직항 09:45, 18:05, 19:45 출발",
   "note": "성인 1명 왕복 총액 · 현재 보통"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "voyage",
+  "site": "monkey",
+  "breakfast": true,
+  "perNight": 331416,
+  "total": 1325664,
+  "room": "보야지 시그니처",
+  "note": "환불 불가"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "space",
+  "site": "monkey",
+  "breakfast": true,
+  "perNight": 261416,
+  "total": 1045664,
+  "room": "스페이스 프리미엄",
+  "freeCancel": "03/27 18시까지"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "mirage",
+  "site": "monkey",
+  "breakfast": true,
+  "perNight": 360270,
+  "total": 1441080,
+  "room": "디럭스 익스플로러 - 1 킹베드",
+  "freeCancel": "04/24 16시까지",
+  "note": "회원 전용가"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "voyage",
+  "site": "agoda",
+  "breakfast": true,
+  "perNight": null,
+  "status": "조식 포함 요금 없음"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "space",
+  "site": "agoda",
+  "breakfast": true,
+  "perNight": null,
+  "status": "조식 포함 요금 없음"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "mirage",
+  "site": "agoda",
+  "breakfast": true,
+  "perNight": null,
+  "status": "조식 포함 요금 없음"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "voyage",
+  "site": "booking",
+  "breakfast": true,
+  "perNight": null,
+  "status": "조건 맞는 요금 없음"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "space",
+  "site": "booking",
+  "breakfast": true,
+  "perNight": null,
+  "status": "조건 맞는 요금 없음"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "mirage",
+  "site": "booking",
+  "breakfast": true,
+  "perNight": null,
+  "status": "조건 맞는 요금 없음"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "voyage",
+  "site": "taecho",
+  "breakfast": true,
+  "perNight": null,
+  "status": "시크릿요금 (문의 필요)",
+  "note": "성인 2인 조식 기준"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "space",
+  "site": "taecho",
+  "breakfast": true,
+  "perNight": 252840,
+  "room": "[26/09/01~27/04/30] EARLY BIRD OFFERS – 26, 27 / Space Premium",
+  "note": "성인 2인 조식 기준"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "mirage",
+  "site": "taecho",
+  "breakfast": true,
+  "perNight": null,
+  "status": "요금 미등록",
+  "note": "성인 2인 조식 기준"
+ },
+ {
+  "ts": "2026-10-02T23:57:47Z",
+  "hotel": "flight",
+  "site": "google",
+  "breakfast": true,
+  "perNight": 799400,
+  "total": 799400,
+  "room": "대한항공 직항 09:45, 18:05, 19:45 출발",
+  "note": "성인 1명 왕복 총액 · 현재 보통"
  }
 ]
