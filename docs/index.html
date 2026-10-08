@@ -44,6 +44,8 @@ h2{font-size:17px;margin:0;line-height:1.35;text-wrap:balance}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .price{font-family:var(--f-num);font-size:22px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .price.na{font-family:var(--f-body);font-size:14px;font-weight:500;color:var(--muted)}
+.promo{grid-column:1/-1;font-size:12.5px;background:var(--accent-soft);color:var(--fg);border-radius:8px;padding:6px 10px}
+.promo b{color:var(--accent)}
 .detail{grid-column:1/-1;font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px}
 .row-end{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
 .chip{display:inline-flex;align-items:center;font-size:12.5px;font-weight:500;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
@@ -96,23 +98,24 @@ details summary{cursor:pointer;font-weight:700;font-size:15px}
     </div>
   </details>
 
-  <p class="note">항공권은 구글 플라이트 기준 대한항공 직항, 성인 1명 왕복 총액(세금 포함)이에요. 호텔 가격은 모두 세금·봉사료 포함 1박 금액이에요. 몽키트래블·아고다·부킹닷컴은 아동 1명(만 10세)을 포함한 조건의 요금이고, 아고다는 만 10세를 간이침대 대상으로 계산해 그 요금이 포함돼 있어요. 태초클럽은 성인 2인 조식 기준이라 참고용으로만 보여주고 최저가 비교에서는 빼요. 태초클럽은 날짜가 자동 입력되지 않으니 열린 페이지에서 "날짜 먼저 선택"으로 4.27–5.1을 넣어주세요.</p>
+  <p class="note">항공권은 구글 플라이트 기준 대한항공 직항, 성인 1명 왕복 총액(세금 포함)이에요. 호텔 가격은 모두 세금·봉사료 포함 1박 금액이에요. 몽키트래블·호텔 공식 홈페이지·부킹닷컴은 아동 1명(만 10세)을 포함한 조건의 요금이에요. 센타라 공식 홈페이지는 세금 제외가로 표시돼서 봉사료·VAT 17.7%를 더해 환산했고, 무료 가입하는 Centara The1 회원가 기준이에요. 공식 홈페이지 요금에도 만 7~11세 아동 조식비가 따로 붙을 수 있어요. 태초클럽은 성인 2인 조식 기준이라 참고용으로만 보여주고 최저가 비교에서는 빼요. 태초클럽은 날짜가 자동 입력되지 않으니 열린 페이지에서 "날짜 먼저 선택"으로 4.27–5.1을 넣어주세요.</p>
 </div>
 
 <script>
 const Q = "period=2027-04-27%7E2027-05-01&room=1&room_adult=2&child_count=1&child_age_list=10";
 const MT = id => `https://www.monkeytravel.com/th/ko/hotel/pattaya/nakluabeach/product/product_detail.php?product_id=${id}&${Q}`;
-const AG = slug => `https://www.agoda.com/ko-kr/${slug}/hotel/pattaya-th.html?checkIn=2027-04-27&los=4&rooms=1&adults=2&children=1&childAges=10&currencyCode=KRW`;
+const TV = (base,id) => `${base}/propertyibe2/rates?propertyId=${id}&onlineId=4&checkin=2027-04-27&checkout=2027-05-01&numofroom=1&numofadult=2&numofchild=1&childage=10&currency=KRW&lang=en`;
+const SX = "https://be.synxis.com/?adult=2&agencyid=CENTARA&arrive=2027-04-27&chain=27886&child=1&childages=10&currency=KRW&depart=2027-05-01&hotel=34973&level=hotel&locale=ko-KR&rooms=1&theme=CentaraGrand&themecode=CentaraGrand";
 const BK = slug => `https://www.booking.com/hotel/th/${slug}.ko.html?checkin=2027-04-27&checkout=2027-05-01&group_adults=2&group_children=1&age=10&no_rooms=1&selected_currency=KRW`;
 const TC = (s,h) => `https://www.taechoclub.com/hotel/hotel_view.html?b_uid_s=23&m_uid_s=123&s_uid_s=${s}&hseq=${h}`;
 const HOTELS = [
-  {key:"voyage", ko:"그랑데 센터 포인트 보야지 파타야", en:"Grande Centre Point Voyage Pattaya", links:{monkey:MT(11462841179), agoda:AG("grande-centre-point-voyage-pattaya"), booking:BK("grande-centre-point-voyage-pattaya"), taecho:TC(184,57433)}},
-  {key:"space",  ko:"그랑데 센터 포인트 스페이스 파타야", en:"Grande Centre Point Space Pattaya", links:{monkey:MT(1076864242), agoda:AG("grande-centre-point-space-pattaya"), booking:BK("grande-centre-space-pattaya"), taecho:TC(183,56387)}},
-  {key:"mirage", ko:"센타라 그랜드 미라지 비치 리조트 파타야", en:"Centara Grand Mirage Beach Resort Pattaya", links:{monkey:MT(1076635217), agoda:AG("centara-grand-mirage-beach-resort"), booking:BK("centara-grand-mirage-beach-resort-pattaya"), taecho:TC(180,54992)}},
+  {key:"voyage", ko:"그랑데 센터 포인트 보야지 파타야", en:"Grande Centre Point Voyage Pattaya", links:{monkey:MT(11462841179), official:TV("https://reservation.voyagepattaya.com",1240), booking:BK("grande-centre-point-voyage-pattaya"), taecho:TC(184,57433)}},
+  {key:"space",  ko:"그랑데 센터 포인트 스페이스 파타야", en:"Grande Centre Point Space Pattaya", links:{monkey:MT(1076864242), official:TV("https://reservation.spacepattaya.com",891), booking:BK("grande-centre-space-pattaya"), taecho:TC(183,56387)}},
+  {key:"mirage", ko:"센타라 그랜드 미라지 비치 리조트 파타야", en:"Centara Grand Mirage Beach Resort Pattaya", links:{monkey:MT(1076635217), official:SX, booking:BK("centara-grand-mirage-beach-resort-pattaya"), taecho:TC(180,54992)}},
 ];
 const SITES = [
   {key:"monkey", ko:"몽키트래블", cls:"", color:"var(--accent)"},
-  {key:"agoda", ko:"아고다", cls:"s3", color:"var(--site3)"},
+  {key:"official", ko:"호텔 공식 홈페이지", cls:"s3", color:"var(--site3)"},
   {key:"booking", ko:"부킹닷컴", cls:"s4", color:"var(--site4)"},
   {key:"taecho", ko:"태초클럽", cls:"s2", color:"var(--site2)", ref:true},
 ];
@@ -176,6 +179,7 @@ function render(rows){
         det.appendChild(el("span",{},fmtTime(last.ts)+" 확인"));
       }
       row.appendChild(det);
+      if(last && last.promo){const pr=el("div",{class:"promo"}); pr.appendChild(el("b",{},"프로모션")); pr.appendChild(document.createTextNode(" "+last.promo)); row.appendChild(pr);}
       const end=el("div",{class:"row-end"}); const chipBox=el("span");
       if(lp && pp){const d=lp.perNight-pp.perNight; chipBox.appendChild(el("span",{class:"chip "+(d<0?"down":d>0?"up":"")}, d===0?"변동 없음":(d<0?"▼ ":"▲ ")+won(Math.abs(d))));}
       end.appendChild(chipBox);
