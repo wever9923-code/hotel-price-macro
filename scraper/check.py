@@ -39,8 +39,17 @@ HOTELS = {
                "agoda_slug": "centara-grand-mirage-beach-resort",
                "booking": "centara-grand-mirage-beach-resort-pattaya", "taecho": 54992},
 }
-SITE_NAMES = {"monkey": "몽키", "agoda": "아고다", "booking": "부킹", "taecho": "태초", "google": "구글"}
-COMPARE_SITES = ("monkey", "agoda", "booking", "google")  # 태초클럽은 참고용(성인 2인 기준)
+SITE_NAMES = {"monkey": "몽키", "official": "공홈", "booking": "부킹", "taecho": "태초", "google": "구글"}
+COMPARE_SITES = ("monkey", "official", "booking", "google")  # 태초클럽은 참고용(성인 2인 기준)
+
+# ── 호텔 공식 홈페이지 예약 엔진 ─────────────────────────────────
+TH_TAX = 1.177  # 태국 봉사료 10% + VAT 7% (세금 제외로 표시되는 엔진용)
+OFFICIAL = {
+    "voyage": {"engine": "travelanium", "base": "https://reservation.voyagepattaya.com", "propertyId": 1240},
+    "space": {"engine": "travelanium", "base": "https://reservation.spacepattaya.com", "propertyId": 891},
+    "mirage": {"engine": "synxis", "chain": 27886, "hotel": 34973,
+               "promo_page": "https://www.centarahotelsresorts.com/centaragrand/cmbr"},
+}
 
 # ── 항공권 조건 (구글 플라이트) ─────────────────────────────────
 FLIGHT = {"from": "ICN", "to": "BKK", "out": "2027-04-23", "back": "2027-05-01",
@@ -287,6 +296,103 @@ def scrape_flights(ctx):
     return out
 
 
+def official_url(key, promo=""):
+    o = OFFICIAL[key]
+    ages = ",".join(map(str, CHILD_AGES))
+    if o["engine"] == "travelanium":
+        return (f"{o['base']}/propertyibe2/rates?propertyId={o['propertyId']}&onlineId=4&checkin={CHECK_IN}"
+                f"&checkout={CHECK_OUT}&numofroom=1&numofadult={ADULTS}&numofchild={len(CHILD_AGES)}"
+                f"&childage={ages}&currency=KRW&lang=en")
+    return (f"https://be.synxis.com/?adult={ADULTS}&agencyid=CENTARA&arrive={CHECK_IN}&chain={o['chain']}"
+            f"&child={len(CHILD_AGES)}&childages={ages}&currency=KRW&depart={CHECK_OUT}&hotel={o['hotel']}"
+            f"&level=hotel&locale=ko-KR&rooms=1&theme=CentaraGrand&themecode=CentaraGrand"
+            + (f"&promo={promo}" if promo else ""))
+
+
+def _cancel_ko(date_en):
+    try:
+        return datetime.strptime(date_en, "%d %b %Y").strftime("%Y.%-m.%-d까지")
+    except Exception:
+        return date_en
+
+
+def scrape_official(ctx):
+    import re
+    t_js = (JS_DIR / "travelanium.js").read_text(encoding="utf-8")
+    s_js = (JS_DIR / "synxis.js").read_text(encoding="utf-8")
+    out = {}
+    page = ctx.new_page()
+    for key, o in OFFICIAL.items():
+        try:
+            if o["engine"] == "travelanium":
+                page.goto(official_url(key), wait_until="domcontentloaded", timeout=60000)
+                r = page.evaluate(t_js)
+                b = r.get("best")
+                if not b:
+                    log(f"[official] {key}: 조식 포함 요금 없음 (offers={r.get('count')})")
+                    continue
+                perks = [re.sub(r"(\d+) tokens?/room/night", r"토큰 \1개/박(기념품·액티비티 교환)", p, flags=re.I)
+                         for p in b.get("perks", []) if not re.match(r"breakfast", p, re.I)]
+                notes = ["환불 불가" if not b["refundable"] else ""]
+                if r.get("bestFlex") and r["bestFlex"] is not b:
+                    f = r["bestFlex"]
+                    notes.append(f"무료취소 요금 {f['perNight']:,}원" + (f"({_cancel_ko(f['freeCancel'])})" if f.get("freeCancel") else ""))
+                promo = " / ".join(r.get("promos") or [])
+                out[key] = {"perNight": b["perNight"], "total": b["perNight"] * NIGHTS,
+                            "room": b["room"].title(),
+                            "freeCancel": _cancel_ko(b["freeCancel"]) if b.get("freeCancel") else "",
+                            "note": " · ".join(x for x in notes if x),
+                            "promo": " · ".join(([promo] if promo else []) + (["직예약 특전: " + ", ".join(perks)] if perks else []))}
+            else:
+                # 공식 홈페이지에 걸린 프로모션 코드도 함께 시도
+                codes = []
+                try:
+                    page.goto(o["promo_page"], wait_until="domcontentloaded", timeout=60000)
+                    html = page.content()
+                    codes = list(dict.fromkeys(re.findall(r"promo%3D([A-Z0-9]{4,20})", html)))[:3]
+                except Exception as e:
+                    log(f"[official] {key}: 프로모션 페이지 읽기 실패 {e}")
+                cands, promo_hits = [], []
+                for code in [""] + codes:
+                    page.goto(official_url(key, code), wait_until="domcontentloaded", timeout=60000)
+                    r = page.evaluate(s_js)
+                    if r.get("best"):
+                        cands.append((code, r))
+                        if code:
+                            promo_hits.append(f"코드 {code} 적용 가능")
+                    elif code:
+                        log(f"[official] {key}: 프로모션 코드 {code}는 이 날짜에 적용 안 됨")
+                if not cands:
+                    log(f"[official] {key}: 요금 없음")
+                    continue
+                code, r = min(cands, key=lambda c: c[1]["best"]["price"])
+                b = r["best"]
+                mult = TH_TAX if b.get("taxExcluded") else 1
+                price = round(b["price"] * mult)
+                notes = ["환불 불가" if not b["refundable"] else "", "세금 17.7% 포함 환산" if mult != 1 else ""]
+                if b.get("member"):
+                    notes.insert(0, f"Centara The1 회원가(무료 가입) · 비회원 {round(b['list'] * mult):,}원")
+                if r.get("bestFlex") and not b["refundable"]:
+                    notes.append(f"무료취소 요금 {round(r['bestFlex']['price'] * mult):,}원")
+                rates = [x for x in (r.get("rates") or []) if x]
+                def ko_rate(x):
+                    x = re.sub(r" - CentaraThe1$", "", x)
+                    x = re.sub(r"\bEXCL RB\b|\bGROSS\b|\bIBE\b", "", x)
+                    x = x.replace("LONG STAY", "장기투숙 특가").replace("MEMBER", "(회원)")
+                    return re.sub(r"\s+", " ", x).strip()
+                promo = " / ".join(dict.fromkeys(ko_rate(x) for x in rates if not x.startswith("BAR")))
+                if code:
+                    promo = f"코드 {code} 적용가 · " + promo
+                elif codes:
+                    promo += " · 홈페이지 코드(" + ", ".join(codes) + ") 이 날짜 미적용"
+                out[key] = {"perNight": price, "total": price * NIGHTS, "room": b["room"],
+                            "note": " · ".join(x for x in notes if x), "promo": promo}
+        except Exception as e:
+            log(f"[official] {key} 실패: {e}")
+    page.close()
+    return out
+
+
 # ── 카카오톡 ─────────────────────────────────────────────────
 def kakao_send(text):
     key = os.environ.get("KAKAO_REST_KEY")
@@ -325,7 +431,7 @@ def main():
                                   viewport={"width": 1366, "height": 900})
         ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>undefined})")
         results = {}
-        for site, fn in (("monkey", scrape_monkey), ("agoda", scrape_agoda),
+        for site, fn in (("monkey", scrape_monkey), ("official", scrape_official),
                          ("booking", scrape_booking), ("taecho", scrape_taecho),
                          ("google", scrape_flights)):
             t0 = time.time()
