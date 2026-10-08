@@ -188,7 +188,9 @@ def scrape_booking(ctx):
                 if r.get("perNight"):
                     out[key] = {"perNight": r["perNight"], "total": r["total"], "room": r["room"], "note": r["cancel"]}
                 elif r.get("tableRows", 0) > 0:
-                    out[key] = {"perNight": None, "status": r["status"]}
+                    # 객실표는 읽혔지만 인원 조건을 못 맞춘 경우: 페이지 형식이 달라진 일시적 현상일 수 있어
+                    # 기록하지 않는다(잘못된 '가격 없음' 알림 방지)
+                    log(f"[booking] {key}: 객실표 {r['tableRows']}행을 읽었지만 조건 맞는 요금을 못 찾음 → 이번엔 기록 안 함")
                 else:
                     log(f"[booking] {key}: 객실표를 읽지 못함 (차단 가능성)")
             except Exception as e:
