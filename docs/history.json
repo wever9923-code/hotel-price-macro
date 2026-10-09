@@ -2724,5 +2724,136 @@
   "total": 798200,
   "room": "대한항공 직항 09:45, 18:05, 19:45 출발",
   "note": "성인 1명 왕복 총액 · 현재 보통"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "voyage",
+  "site": "monkey",
+  "breakfast": true,
+  "perNight": 327439,
+  "total": 1309756,
+  "room": "보야지 시그니처",
+  "note": "환불 불가"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "space",
+  "site": "monkey",
+  "breakfast": true,
+  "perNight": 258279,
+  "total": 1033116,
+  "room": "스페이스 프리미엄",
+  "freeCancel": "03/27 18시까지"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "mirage",
+  "site": "monkey",
+  "breakfast": true,
+  "perNight": 360280,
+  "total": 1441120,
+  "room": "디럭스 익스플로러 - 1 킹베드",
+  "freeCancel": "04/24 16시까지",
+  "note": "회원 전용가"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "voyage",
+  "site": "official",
+  "breakfast": true,
+  "perNight": 325155,
+  "total": 1300620,
+  "room": "Voyage Signature",
+  "note": "환불 불가",
+  "promo": "직예약 특전: 토큰 5개/박(기념품·액티비티 교환)"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "space",
+  "site": "official",
+  "breakfast": true,
+  "perNight": 275962,
+  "total": 1103848,
+  "room": "Space Deluxe",
+  "note": "환불 불가 · 무료취소 요금 290,174원(2027.4.19까지)",
+  "promo": "직예약 특전: 토큰 5개/박(기념품·액티비티 교환)"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "mirage",
+  "site": "official",
+  "breakfast": true,
+  "perNight": 312070,
+  "total": 1248280,
+  "room": "Deluxe Explorer King",
+  "note": "Centara The1 회원가(무료 가입) · 비회원 367,140원 · 환불 불가 · 세금 17.7% 포함 환산 · 무료취소 요금 346,744원",
+  "promo": "장기투숙 특가 (회원)"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "voyage",
+  "site": "booking",
+  "breakfast": true,
+  "perNight": 323395,
+  "total": 1293580,
+  "room": "Voyage Signature King",
+  "note": "환불 불가"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "space",
+  "site": "booking",
+  "breakfast": true,
+  "perNight": 285645,
+  "total": 1142579,
+  "room": "Space Deluxe King Room",
+  "note": "환불 불가"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "mirage",
+  "site": "booking",
+  "breakfast": true,
+  "perNight": 386301,
+  "total": 1545205,
+  "room": "디럭스 익스플로러 킹룸",
+  "note": "환불 불가"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "voyage",
+  "site": "taecho",
+  "breakfast": true,
+  "perNight": null,
+  "status": "시크릿요금 (문의 필요)",
+  "note": "성인 2인 조식 기준"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "space",
+  "site": "taecho",
+  "breakfast": true,
+  "perNight": 252180,
+  "room": "[26/09/01~27/04/30] EARLY BIRD OFFERS – 26, 27 / Space Premium",
+  "note": "성인 2인 조식 기준"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "mirage",
+  "site": "taecho",
+  "breakfast": true,
+  "perNight": null,
+  "status": "요금 미등록",
+  "note": "성인 2인 조식 기준"
+ },
+ {
+  "ts": "2026-10-09T06:02:18Z",
+  "hotel": "flight",
+  "site": "google",
+  "breakfast": true,
+  "perNight": 798200,
+  "total": 798200,
+  "room": "대한항공 직항 09:45, 18:05, 19:45 출발",
+  "note": "성인 1명 왕복 총액 · 현재 보통"
  }
 ]
