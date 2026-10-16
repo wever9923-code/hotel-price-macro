@@ -1,0 +1,42 @@
+name: 도매몰 입고 알림
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # 5분마다 (GitHub 사정으로 몇 분~수십 분 늦어질 수 있어요)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read            # 저장소에 아무것도 커밋하지 않음 (호텔 가격 기록과 충돌 방지)
+
+concurrency:
+  group: restock
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 설치
+        run: pip install requests
+      - name: 지난 상태 불러오기
+        uses: actions/cache/restore@v4
+        with:
+          path: .restock_state.json
+          key: restock-state-${{ github.run_id }}
+          restore-keys: restock-state-
+      - name: 입고 확인
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scraper/restock.py
+      - name: 상태 저장
+        if: hashFiles('.restock_state.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: .restock_state.json
+          key: restock-state-${{ github.run_id }}
