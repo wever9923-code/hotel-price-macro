@@ -59,6 +59,9 @@ HEADERS = {
 SKIP_NAMES = ("닫기", "할인기간", "찜하기")
 
 
+SEND_ERRORS = []
+
+
 def send_telegram(text, buttons=None):
     """텔레그램으로 메시지 전송. buttons 는 [(버튼글자, 주소), ...]. 성공하면 True."""
     data = {"chat_id": CHAT_ID, "text": text}
@@ -71,13 +74,21 @@ def send_telegram(text, buttons=None):
             data=data,
             timeout=15,
         )
-        if r.status_code != 200:
-            print("  [텔레그램 오류] %s %s" % (r.status_code, r.text[:200]))
-            return False
-        return True
     except requests.RequestException as e:
-        print("  [텔레그램 전송 실패] %s" % e)
+        SEND_ERRORS.append("텔레그램 접속 실패: %s" % e)
         return False
+    if r.status_code == 200:
+        return True
+    if r.status_code in (401, 404):
+        reason = "봇 토큰이 틀렸습니다. Secrets의 TELEGRAM_TOKEN을 확인하세요 ('bot' 없이 숫자:문자열 전체, 공백 없이)."
+    elif r.status_code == 400 and "chat not found" in r.text:
+        reason = "채팅 ID가 틀렸거나, 봇과의 대화에서 '시작'을 누르지 않았습니다. Secrets의 TELEGRAM_CHAT_ID를 확인하세요."
+    elif r.status_code == 403:
+        reason = "봇이 차단되었습니다. 텔레그램에서 봇 대화를 열고 차단 해제 후 '시작'을 누르세요."
+    else:
+        reason = "알 수 없는 오류"
+    SEND_ERRORS.append("텔레그램 전송 실패 (%s): %s / 응답: %s" % (r.status_code, reason, r.text[:200]))
+    return False
 
 
 def clean_text(fragment):
@@ -236,8 +247,17 @@ def main():
         state["products"][key] = current
         time.sleep(2)
 
-    if first_run:
+    manual = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
+    if first_run or manual:
+        if not first_run:
+            lines[0] = "현재 입고 상태입니다. (수동 실행)"
         send_telegram("\n".join(lines), buttons)
+
+    if SEND_ERRORS:
+        # 상태를 저장하지 않고 실패로 끝내서, Actions에 빨간 X로 보이고 다음 실행 때 다시 보내게 한다
+        for err in SEND_ERRORS:
+            print("::error::" + err)
+        sys.exit(1)
 
     save_state(state)
 
