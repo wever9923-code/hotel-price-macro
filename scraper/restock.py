@@ -35,7 +35,13 @@ WATCHES = [
     ("달달몰", "포켓몬카드"),
     ("현동몰", "포켓몬카드"),
     ("현동몰", "먼작귀"),
+    ("천유닷컴", "먼작귀"),
 ]
+
+# 상품명에 이 중 하나라도 들어 있으면 감시 대상으로 봅니다. (없는 검색어는 검색어 자체로 판단)
+NAME_ALIASES = {
+    "먼작귀": ["먼작귀", "치이카와"],
+}
 # ------------------------------------------------------------------
 
 SITES = {
@@ -48,6 +54,13 @@ SITES = {
         "search_url": "https://m.hicorporation.co.kr/goods/goods_search.php",
         "link_re": r"href=[\"'][^\"']*goods_view\.php\?[^\"']*goodsNo=(\d+)()[^\"']*[\"']",
         "product_url": "https://m.hicorporation.co.kr/goods/goods_view.php?goodsNo=%s",
+    },
+    "천유닷컴": {
+        "search_url": "https://www.cheonyu.com/m/product_list.html",
+        "link_re": r"href=[\"'][^\"']*product_view\.html\?[^\"']*qIDX=(\d+)()[^\"']*[\"']",
+        "product_url": "https://www.cheonyu.com/m/product_view.html?qIDX=%s",
+        "keyword_param": "s1",
+        "extra_params": {"s2": "1"},
     },
 }
 
@@ -114,25 +127,57 @@ def parse_page(page, link_re, keyword):
             seen.add(no)
             starts.append((m.start(), no))
 
-    key = squash(keyword)
+    keys = [squash(k) for k in NAME_ALIASES.get(keyword, [keyword])]
     matched = {}
+    prev_end = 0
     for i, (pos, no) in enumerate(starts):
-        end = starts[i + 1][0] if i + 1 < len(starts) else min(len(page), pos + 8000)
-        seg_start = page.rfind("<", 0, pos)
-        segment = page[seg_start if seg_start >= 0 else pos:end]
+        tag_start = page.rfind("<", 0, pos)
+        tag_start = tag_start if tag_start >= 0 else pos
+        tag_end = page.find(">", pos) + 1
+        close = page.find("</a>", tag_end)
+        inner = page[tag_end:close] if close >= 0 else ""
+        link_tag = page[tag_start:tag_end]
 
-        texts = [clean_text(t) for t in re.findall(r"<a\b[^>]*>(.*?)</a>", segment, flags=re.S | re.I)]
-        texts += [html.unescape(a).strip() for a in re.findall(r"alt=[\"']([^\"']+)[\"']", segment)]
+        if clean_text(inner) or re.search(r"<img\b", inner, flags=re.I):
+            # 링크가 상품 내용을 감싸는 구조: 이 링크부터 다음 상품 링크 전까지
+            end = starts[i + 1][0] if i + 1 < len(starts) else min(len(page), pos + 8000)
+            end = page.rfind("<", 0, end) if i + 1 < len(starts) else end
+            segment = page[tag_start:end]
+        else:
+            # 빈 링크가 상품 내용 뒤에 붙는 구조: 이전 상품 링크 끝부터 이 링크까지
+            segment = page[max(prev_end, tag_start - 4000):tag_end]
+        prev_end = (close + 4) if close >= 0 else tag_end
+
+        title = re.search(r"title=[\"']([^\"']+)[\"']", link_tag)
+        headings = [clean_text(t) for t in re.findall(r"<h\d\b[^>]*>(.*?)</h\d>", segment, flags=re.S | re.I)]
+        links = [clean_text(t) for t in re.findall(r"<a\b[^>]*>(.*?)</a>", segment, flags=re.S | re.I)]
+        alts = [html.unescape(a).strip() for a in re.findall(r"alt=[\"']([^\"']+)[\"']", segment)]
+        texts = ([html.unescape(title.group(1)).strip()] if title else []) + headings + links + alts
         texts = [t for t in texts if t and not t.startswith(SKIP_NAMES)]
-        hits = [t for t in texts if key in squash(t)]
+        hits = [t for t in texts if any(k in squash(t) for k in keys)]
         if not hits:
             continue   # 검색어가 상품명에 없으면 감시 대상이 아님
 
-        # 현동몰 설명 줄("온라인재판매불가 * 상품명 * 12입...")에서 검색어가 든 조각만 뽑는다
-        parts = [p.strip(" *") for t in hits for p in t.split(" * ")]
-        parts = [p for p in parts if p and key in squash(p)]
-        name = min(parts, key=len) if parts else hits[0]
+        # 이름 고르기: 제목(h태그) > 링크 title > 링크 글자 > 이미지 설명 순서로, 검색어가 든 것
+        name = ""
+        for group in (headings, [title.group(1)] if title else [], links, alts):
+            for t in group:
+                t = html.unescape(t).strip()
+                # 현동몰 설명 줄("온라인재판매불가 * 상품명 * 12입...")은 검색어가 든 조각만
+                for part in [p.strip(" *") for p in t.split(" * ")]:
+                    if part and any(k in squash(part) for k in keys) and not part.startswith(SKIP_NAMES):
+                        name = part
+                        break
+                if name:
+                    break
+            if name:
+                break
+        name = name or hits[0]
+
         soldout = bool(re.search(r"soldout|sold_out|alt=[\"']품절[\"']|>\s*품절\s*<", segment, flags=re.I))
+        # 천유닷컴처럼 품절 표시 대신 상품명에 [11월 중순 재입고] 같은 꼬리표를 다는 경우
+        if any(re.search(r"\[[^\]]*(재입고|입고예정|품절)[^\]]*\]", t) for t in hits):
+            soldout = True
         matched[no] = {"name": name, "soldout": soldout}
     return seen, matched
 
@@ -146,7 +191,7 @@ def fetch(site_name, keyword):
         try:
             r = requests.get(
                 site["search_url"],
-                params={"keyword": keyword, "page": page_no},
+                params=dict(site.get("extra_params", {}), **{site.get("keyword_param", "keyword"): keyword, "page": page_no}),
                 headers=HEADERS,
                 timeout=20,
             )
