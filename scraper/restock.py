@@ -37,6 +37,7 @@ WATCHES = [
     ("현동몰", "포켓몬카드"),
     ("현동몰", "먼작귀"),
     ("천유닷컴", "먼작귀"),
+    ("나비띠", "먼작귀"),
 ]
 
 # 상품명에 이 중 하나라도 들어 있으면 감시 대상으로 봅니다. (없는 검색어는 검색어 자체로 판단)
@@ -62,6 +63,12 @@ SITES = {
         "product_url": "https://www.cheonyu.com/m/product_view.html?qIDX=%s",
         "keyword_param": "s1",
         "extra_params": {"s2": "1"},
+    },
+    "나비띠": {
+        "search_url": "https://www.nabiddi.com/shop/goods_search.php",
+        "link_re": r"href=[\"'][^\"']*goods_detail\.php\?[^\"']*ps_uid=(\d+)()[^\"']*[\"']",
+        "product_url": "https://www.nabiddi.com/shop/goods_detail.php?ps_uid=%s",
+        "keyword_param": "ps_keyword",
     },
 }
 
@@ -175,7 +182,9 @@ def parse_page(page, link_re, keyword):
                 break
         name = name or hits[0]
 
-        soldout = bool(re.search(r"soldout|sold_out|alt=[\"']품절[\"']|>\s*품절\s*<", segment, flags=re.I))
+        soldout = bool(re.search(
+            r"soldout|sold_out|alt=[\"'](일시)?품절[\"']|>\s*(일시)?품절\s*<|cart_no\(",
+            segment, flags=re.I))
         # 천유닷컴처럼 품절 표시 대신 상품명에 [11월 중순 재입고] 같은 꼬리표를 다는 경우
         if any(re.search(r"\[[^\]]*(재입고|입고예정|품절)[^\]]*\]", t) for t in hits):
             soldout = True
@@ -218,7 +227,7 @@ def fetch(site_name, keyword):
     if not got_page:
         return None
     # 페이지 모양이 아예 이상하면(상품 링크도, '없음' 문구도 없음) 실패로 본다
-    if not all_seen and not re.search(r"상품이 존재하지 않습니다|검색 결과가 없습니다|검색결과\s*\(\s*0\s*\)|상품\s*수\s*0", text):
+    if not all_seen and not re.search(r"상품이 존재하지 않습니다|검색\s*결과가\s*없|검색결과\s*\(\s*0\s*\)|상품\s*수\s*0", text):
         print("  [%s] 페이지를 읽을 수 없습니다." % site_name)
         return None
     return products
